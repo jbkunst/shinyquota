@@ -15,6 +15,9 @@
 #' @param close_session Whether to close the Shiny session when access is
 #'   blocked or expires. Defaults to `TRUE`.
 #' @param title Title displayed in the blocking modal.
+#' @param blocked_message Message displayed in the blocking modal. It must
+#'   contain exactly one `{countdown}` marker, which is replaced by the live
+#'   countdown.
 #'
 #' @return A `shinyquota_access` object with reactive methods `allowed()`,
 #'   `status()`, `remaining_seconds()`, and `require()`.
@@ -27,7 +30,8 @@ sq_access <- function(
     cooldown_minutes = 60,
     store_raw_ip = FALSE,
     close_session = TRUE,
-    title = "Access temporarily unavailable") {
+    title = "Access temporarily unavailable",
+    blocked_message = "You've reached the usage limit. Try again in {countdown}.") {
   if (missing(session) || is.null(session)) {
     stop("`session` must be a Shiny session.", call. = FALSE)
   }
@@ -46,6 +50,33 @@ sq_access <- function(
 
   if (!is.logical(close_session) || length(close_session) != 1L || is.na(close_session)) {
     stop("`close_session` must be `TRUE` or `FALSE`.", call. = FALSE)
+  }
+
+  if (!is.character(blocked_message) || length(blocked_message) != 1L || !nzchar(blocked_message)) {
+    stop("`blocked_message` must be a non-empty string.", call. = FALSE)
+  }
+
+  countdown_marker <- "{countdown}"
+  message_without_marker <- sub(countdown_marker, "", blocked_message, fixed = TRUE)
+
+  if (
+    !grepl(countdown_marker, blocked_message, fixed = TRUE) ||
+      grepl(countdown_marker, message_without_marker, fixed = TRUE)
+  ) {
+    stop("`blocked_message` must contain exactly one `{countdown}` marker.", call. = FALSE)
+  }
+
+  marker_start <- regexpr(countdown_marker, blocked_message, fixed = TRUE)[1]
+  message_before <- if (marker_start > 1L) {
+    substr(blocked_message, 1L, marker_start - 1L)
+  } else {
+    ""
+  }
+  marker_end <- marker_start + nchar(countdown_marker) - 1L
+  message_after <- if (marker_end < nchar(blocked_message)) {
+    substr(blocked_message, marker_end + 1L, nchar(blocked_message))
+  } else {
+    ""
   }
 
   client <- sq_client_info(session)
@@ -121,13 +152,14 @@ sq_access <- function(
     )
 
     shiny::tags$p(
-      "This IP has reached its current usage limit. Try again in ",
+      style = "margin-bottom: 0;",
+      message_before,
       shiny::tags$strong(
         id = countdown_id,
         style = "font-variant-numeric: tabular-nums;",
         sq_duration_label(seconds)
       ),
-      ".",
+      message_after,
       shiny::tags$script(shiny::HTML(script))
     )
   }
@@ -140,6 +172,9 @@ sq_access <- function(
     shiny::showModal(
       shiny::modalDialog(
         title = title,
+        shiny::tags$hr(
+          style = "margin: -0.25rem 0 1rem; opacity: 0.2;"
+        ),
         countdown_ui(),
         footer = NULL,
         easyClose = FALSE,
