@@ -76,26 +76,65 @@ sq_access <- function(
     max(0, as.numeric(difftime(target, sq_now(), units = "secs")))
   })
 
-  modal_output_id <- paste0(
-    "shinyquota_remaining_",
+  countdown_id <- paste0(
+    "shinyquota_countdown_",
     gsub("[^A-Za-z0-9_]", "", session$token)
   )
 
-  session$output[[modal_output_id]] <- shiny::renderUI({
-    seconds <- remaining_seconds()
+  countdown_ui <- function() {
+    seconds <- max(
+      0,
+      as.numeric(difftime(decision$blocked_until, sq_now(), units = "secs"))
+    )
+    deadline_ms <- floor(as.numeric(decision$blocked_until) * 1000)
 
-    if (seconds > 0) {
-      shiny::tags$div(
-        shiny::tags$p("You can access this application again in:"),
-        shiny::tags$div(
-          style = "font-size: 2rem; font-weight: 600; text-align: center;",
-          sq_duration_label(seconds)
-        )
-      )
-    } else {
-      shiny::tags$p("You can access the application again. Refresh this page to continue.")
-    }
-  })
+    script <- sprintf(
+      paste0(
+        "(function() {",
+        "const el = document.getElementById('%s');",
+        "if (!el) return;",
+        "const deadline = %s;",
+        "let timer = null;",
+        "const formatTime = function(ms) {",
+        "const total = Math.max(0, Math.ceil(ms / 1000));",
+        "const hours = Math.floor(total / 3600);",
+        "const minutes = Math.floor((total %% 3600) / 60);",
+        "const seconds = total %% 60;",
+        "if (hours > 0) return hours + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');",
+        "return minutes + ':' + String(seconds).padStart(2, '0');",
+        "};",
+        "const tick = function() {",
+        "const remaining = deadline - Date.now();",
+        "if (remaining <= 0) {",
+        "el.textContent = 'available now';",
+        "if (timer) window.clearInterval(timer);",
+        "return;",
+        "}",
+        "el.textContent = formatTime(remaining);",
+        "};",
+        "tick();",
+        "timer = window.setInterval(tick, 1000);",
+        "})();"
+      ),
+      countdown_id,
+      format(deadline_ms, scientific = FALSE, trim = TRUE)
+    )
+
+    shiny::tags$div(
+      style = paste(
+        "margin-top: 0.75rem;",
+        "font-size: 0.875rem;",
+        "color: var(--bs-secondary-color, #6c757d);"
+      ),
+      "Try again in ",
+      shiny::tags$span(
+        id = countdown_id,
+        style = "font-variant-numeric: tabular-nums; font-weight: 500;",
+        sq_duration_label(seconds)
+      ),
+      shiny::tags$script(shiny::HTML(script))
+    )
+  }
 
   show_blocked_modal <- function() {
     if (isTRUE(modal_shown)) {
@@ -106,7 +145,7 @@ sq_access <- function(
       shiny::modalDialog(
         title = title,
         shiny::tags$p("This IP has reached its current usage limit."),
-        shiny::uiOutput(modal_output_id),
+        countdown_ui(),
         footer = NULL,
         easyClose = FALSE,
         fade = FALSE
