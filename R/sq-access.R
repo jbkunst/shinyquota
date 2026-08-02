@@ -106,7 +106,7 @@ sq_access <- function(
         "const tick = function() {",
         "const remaining = deadline - Date.now();",
         "if (remaining <= 0) {",
-        "el.textContent = 'available now';",
+        "el.textContent = '0:00';",
         "if (timer) window.clearInterval(timer);",
         "return;",
         "}",
@@ -120,18 +120,14 @@ sq_access <- function(
       format(deadline_ms, scientific = FALSE, trim = TRUE)
     )
 
-    shiny::tags$div(
-      style = paste(
-        "margin-top: 0.75rem;",
-        "font-size: 0.875rem;",
-        "color: var(--bs-secondary-color, #6c757d);"
-      ),
-      "Try again in ",
-      shiny::tags$span(
+    shiny::tags$p(
+      "This IP has reached its current usage limit. Try again in ",
+      shiny::tags$strong(
         id = countdown_id,
-        style = "font-variant-numeric: tabular-nums; font-weight: 500;",
+        style = "font-variant-numeric: tabular-nums;",
         sq_duration_label(seconds)
       ),
+      ".",
       shiny::tags$script(shiny::HTML(script))
     )
   }
@@ -144,7 +140,6 @@ sq_access <- function(
     shiny::showModal(
       shiny::modalDialog(
         title = title,
-        shiny::tags$p("This IP has reached its current usage limit."),
         countdown_ui(),
         footer = NULL,
         easyClose = FALSE,
