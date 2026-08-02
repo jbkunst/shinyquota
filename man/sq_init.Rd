@@ -13,5 +13,6 @@ sq_init(con)
 \code{TRUE}, invisibly.
 }
 \description{
-Creates the two small tables used by shinyquota. The operation is idempotent and can be called when the application starts.
+Creates the two small tables used by shinyquota. The operation is
+idempotent and can be called when the application starts.
 }

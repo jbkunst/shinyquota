@@ -16,16 +16,26 @@ sq_access(
 }
 \arguments{
 \item{session}{The current Shiny session.}
+
 \item{con}{A DBI connection or a \code{pool::Pool} object.}
+
 \item{app_id}{A short identifier for the application.}
+
 \item{access_minutes}{Length of the access window in minutes.}
+
 \item{cooldown_minutes}{Waiting period after the access window, in minutes.}
-\item{store_raw_ip}{Whether to store the raw client IP. The default stores only a salted hash.}
+
+\item{store_raw_ip}{Whether to store the raw client IP. The default stores
+only a salted hash.}
+
 \item{title}{Title displayed in the blocking modal.}
 }
 \value{
-A \code{shinyquota_access} object with reactive methods \code{allowed()}, \code{status()}, \code{remaining_seconds()}, and \code{require()}.
+A \code{shinyquota_access} object with reactive methods \code{allowed()},
+\code{status()}, \code{remaining_seconds()}, and \code{require()}.
 }
 \description{
-Opens or resumes an access window for the session IP. The window timestamps live in the database, so refreshing the browser does not restart the quota. When access expires, a blocking modal is shown automatically.
+Opens or resumes an access window for the session IP. The window timestamps
+live in the database, so refreshing the browser does not restart the quota.
+When access expires, a blocking modal is shown automatically.
 }

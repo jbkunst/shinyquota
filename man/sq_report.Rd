@@ -13,13 +13,17 @@ sq_report(
 }
 \arguments{
 \item{con}{A DBI connection or a \code{pool::Pool} object.}
+
 \item{app_id}{Optional application identifier to filter the report.}
+
 \item{output_file}{Path for the generated HTML file.}
+
 \item{quiet}{Whether to suppress Quarto output.}
 }
 \value{
 The normalized report path, invisibly.
 }
 \description{
-Reads the shinyquota tables and renders the package's small Quarto report. The report is intentionally basic and is meant for quick operational review.
+Reads the shinyquota tables and renders the package's small Quarto report.
+The report is intentionally basic and is meant for quick operational review.
 }
