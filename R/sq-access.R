@@ -2,7 +2,8 @@
 #'
 #' Opens or resumes an access window for the session IP. The window timestamps
 #' live in the database, so refreshing the browser does not restart the quota.
-#' When access expires, a blocking modal is shown automatically.
+#' When access expires, a blocking modal is shown automatically and, by default,
+#' the Shiny session is closed from the server.
 #'
 #' @param session The current Shiny session.
 #' @param con A DBI connection or a `pool::Pool` object.
@@ -11,6 +12,8 @@
 #' @param cooldown_minutes Waiting period after the access window, in minutes.
 #' @param store_raw_ip Whether to store the raw client IP. The default stores
 #'   only a salted hash.
+#' @param close_session Whether to close the Shiny session when access is
+#'   blocked or expires. Defaults to `TRUE`.
 #' @param title Title displayed in the blocking modal.
 #'
 #' @return A `shinyquota_access` object with reactive methods `allowed()`,
@@ -23,6 +26,7 @@ sq_access <- function(
     access_minutes = 10,
     cooldown_minutes = 60,
     store_raw_ip = FALSE,
+    close_session = TRUE,
     title = "Access temporarily unavailable") {
   if (missing(session) || is.null(session)) {
     stop("`session` must be a Shiny session.", call. = FALSE)
@@ -38,6 +42,10 @@ sq_access <- function(
 
   if (!is.numeric(cooldown_minutes) || length(cooldown_minutes) != 1L || cooldown_minutes < 0) {
     stop("`cooldown_minutes` must be zero or greater.", call. = FALSE)
+  }
+
+  if (!is.logical(close_session) || length(close_session) != 1L || is.na(close_session)) {
+    stop("`close_session` must be `TRUE` or `FALSE`.", call. = FALSE)
   }
 
   client <- sq_client_info(session)
@@ -60,6 +68,7 @@ sq_access <- function(
   status <- shiny::reactiveVal(decision$status)
   modal_shown <- FALSE
   session_finished <- FALSE
+  session_close_scheduled <- FALSE
 
   remaining_seconds <- shiny::reactive({
     shiny::invalidateLater(1000, session)
@@ -109,8 +118,23 @@ sq_access <- function(
     invisible(NULL)
   }
 
+  close_blocked_session <- function() {
+    if (!isTRUE(close_session) || isTRUE(session_close_scheduled)) {
+      return(invisible(NULL))
+    }
+
+    session_close_scheduled <<- TRUE
+    session$onFlushed(
+      function() session$close(),
+      once = TRUE
+    )
+
+    invisible(NULL)
+  }
+
   if (!isTRUE(decision$allowed)) {
     show_blocked_modal()
+    close_blocked_session()
   }
 
   shiny::observe({
@@ -122,6 +146,7 @@ sq_access <- function(
       sq_finish_session(con, session_id, status = "expired", reason = "expired")
       session_finished <<- TRUE
       show_blocked_modal()
+      close_blocked_session()
     }
   })
 
