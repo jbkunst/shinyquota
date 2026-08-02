@@ -12,7 +12,8 @@ sq_access(
   cooldown_minutes = 60,
   store_raw_ip = FALSE,
   close_session = TRUE,
-  title = "Access temporarily unavailable"
+  title = "Access temporarily unavailable",
+  blocked_message = "You've reached the usage limit. Try again in {countdown}."
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ only a salted hash.}
 blocked or expires. Defaults to \code{TRUE}.}
 
 \item{title}{Title displayed in the blocking modal.}
+
+\item{blocked_message}{Message displayed in the blocking modal. It must
+contain exactly one \code{\{countdown\}} marker, which is replaced by the live
+countdown.}
 }
 \value{
 A \code{shinyquota_access} object with reactive methods \code{allowed()},
