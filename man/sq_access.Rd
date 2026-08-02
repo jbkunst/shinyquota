@@ -11,6 +11,7 @@ sq_access(
   access_minutes = 10,
   cooldown_minutes = 60,
   store_raw_ip = FALSE,
+  close_session = TRUE,
   title = "Access temporarily unavailable"
 )
 }
@@ -28,6 +29,9 @@ sq_access(
 \item{store_raw_ip}{Whether to store the raw client IP. The default stores
 only a salted hash.}
 
+\item{close_session}{Whether to close the Shiny session when access is
+blocked or expires. Defaults to \code{TRUE}.}
+
 \item{title}{Title displayed in the blocking modal.}
 }
 \value{
@@ -37,5 +41,6 @@ A \code{shinyquota_access} object with reactive methods \code{allowed()},
 \description{
 Opens or resumes an access window for the session IP. The window timestamps
 live in the database, so refreshing the browser does not restart the quota.
-When access expires, a blocking modal is shown automatically.
+When access expires, a blocking modal is shown automatically and, by default,
+the Shiny session is closed from the server.
 }
