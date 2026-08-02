@@ -1,0 +1,27 @@
+Package: shinyquota
+Title: Simple Usage Quotas for Shiny Applications
+Version: 0.0.0.9000
+Authors@R: 
+    person("Joshua", "Kunst", , "56481+jbkunst@users.noreply.github.com", role = c("aut", "cre"))
+Description: Provides a small and deliberately simple way to limit access to a
+    Shiny application by client IP. Access windows, cooldown periods, and
+    session history are stored through 'DBI', allowing the same interface to
+    work with SQLite and PostgreSQL.
+License: MIT + file LICENSE
+URL: https://github.com/jbkunst/shinyquota
+BugReports: https://github.com/jbkunst/shinyquota/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    DBI,
+    digest,
+    shiny
+Suggests:
+    knitr,
+    pool,
+    quarto,
+    RPostgres,
+    RSQLite,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
