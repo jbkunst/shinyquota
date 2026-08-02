@@ -172,8 +172,19 @@ sq_access <- function(
     shiny::showModal(
       shiny::modalDialog(
         title = title,
+        shiny::tags$style(shiny::HTML(
+          paste0(
+            "#shiny-modal .modal-header {",
+            "padding-bottom: 0.35rem;",
+            "border-bottom: 0;",
+            "}",
+            "#shiny-modal .modal-body {",
+            "padding-top: 0;",
+            "}"
+          )
+        )),
         shiny::tags$hr(
-          style = "margin: -0.25rem 0 1rem; opacity: 0.2;"
+          style = "margin: 0 0 1rem; opacity: 0.2;"
         ),
         countdown_ui(),
         footer = NULL,
