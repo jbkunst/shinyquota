@@ -2,7 +2,7 @@ Package: shinyquota
 Title: Simple Usage Quotas for Shiny Applications
 Version: 0.0.0.9000
 Authors@R: 
-    person("Joshua", "Kunst", , "56481+jbkunst@users.noreply.github.com", role = c("aut", "cre"))
+    person("Joshua", "Kunst", , "jbkunst@gmail.com", role = c("aut", "cre"))
 Description: Provides a small and deliberately simple way to limit access to a
     Shiny application by client IP. Access windows, cooldown periods, and
     session history are stored through 'DBI', allowing the same interface to
